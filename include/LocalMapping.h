@@ -65,6 +65,7 @@ public:
     bool AcceptKeyFrames();
     void SetAcceptKeyFrames(bool flag);
     bool SetNotStop(bool flag);
+    float GetTime();
 
     void InterruptBA();
 
@@ -192,7 +193,7 @@ protected:
 
     int countRefinement;
 
-    //DEBUG
+    //DEBUG    
     ofstream f_lm;
 
     };

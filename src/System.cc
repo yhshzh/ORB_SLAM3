@@ -19,6 +19,7 @@
 
 
 #include "System.h"
+#include "NoViewer.h"
 #include "Converter.h"
 #include <thread>
 #include <pangolin/pangolin.h>
@@ -38,6 +39,8 @@ namespace ORB_SLAM3
 
 Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
 
+
+// "p"表示指针数据类型,"n"表示int类型,"b"表示bool类型,"s"表示set类型,"v"表示vector数据类型,"I"表示list数据类型,"m"表示类的成员变量,"t"表示线程。
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer, const int initFr, const string &strSequence):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
@@ -115,7 +118,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
         mpVocabulary = new ORBVocabulary();
-        bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+//        bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+        bool bVocLoad = mpVocabulary->loadFromBinaryFile(strVocFile);
         if(!bVocLoad)
         {
             cerr << "Wrong path to vocabulary. " << endl;
@@ -137,7 +141,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
         mpVocabulary = new ORBVocabulary();
-        bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+        bool bVocLoad = mpVocabulary->loadFromBinaryFile(strVocFile);
         if(!bVocLoad)
         {
             cerr << "Wrong path to vocabulary. " << endl;
@@ -226,8 +230,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //usleep(10*1000*1000);
 
     //Initialize the Viewer thread and launch
-    if(bUseViewer)
-    //if(false) // TODO
+    // if(bUseViewer)
+    if(true)
     {
         mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile,settings_);
         mptViewer = new thread(&Viewer::Run, mpViewer);
@@ -235,13 +239,22 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpLoopCloser->mpViewer = mpViewer;
         mpViewer->both = mpFrameDrawer->both;
     }
+    else
+    {
+        mpNoViewer = new NoViewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile,settings_);
+        mptNoViewer = new thread(&NoViewer::Run, mpNoViewer);
+        mpTracker->SetNoViewer(mpNoViewer);
+        mpLoopCloser->mpNoViewer = mpNoViewer;
+        mpNoViewer->both = mpFrameDrawer->both;
+    }
+
 
     // Fix verbosity
     Verbose::SetTh(Verbose::VERBOSITY_QUIET);
 
 }
 
-Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
+Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename) // TODO Tracking
 {
     if(mSensor!=STEREO && mSensor!=IMU_STEREO)
     {
@@ -1059,7 +1072,7 @@ void System::SaveKeyFrameTrajectoryEuRoC(const string &filename)
     cout << endl << "Saving keyframe trajectory to " << filename << " ..." << endl;
 
     vector<Map*> vpMaps = mpAtlas->GetAllMaps();
-    Map* pBiggerMap;
+    Map* pBiggerMap = nullptr;
     int numMaxKFs = 0;
     for(Map* pMap :vpMaps)
     {
@@ -1412,30 +1425,44 @@ void System::SaveAtlas(int type){
         pathSaveFileName = pathSaveFileName.append(mStrSaveAtlasToFile);
         pathSaveFileName = pathSaveFileName.append(".osa");
 
-        string strVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);
+        // string strVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE); //TODO TEXT_FILE
         std::size_t found = mStrVocabularyFilePath.find_last_of("/\\");
         string strVocabularyName = mStrVocabularyFilePath.substr(found+1);
 
         if(type == TEXT_FILE) // File text
         {
             cout << "Starting to write the save text file " << endl;
+            cout << "1" <<endl;
             std::remove(pathSaveFileName.c_str());
-            std::ofstream ofs(pathSaveFileName, std::ios::binary);
-            boost::archive::text_oarchive oa(ofs);
+            cout << "2" <<endl;
 
-            oa << strVocabularyName;
-            oa << strVocabularyChecksum;
+            std::ofstream ofs(pathSaveFileName, std::ios::binary);
+            cout << "3" <<endl;
+
+            boost::archive::text_oarchive oa(ofs);
+            cout << "4" <<endl;
+
+
+            //oa << strVocabularyName;
+           // oa << strVocabularyChecksum;
             oa << mpAtlas;
             cout << "End to write the save text file" << endl;
         }
         else if(type == BINARY_FILE) // File binary
         {
             cout << "Starting to write the save binary file" << endl;
+            cout << "1" <<endl;
             std::remove(pathSaveFileName.c_str());
+            cout << "2" <<endl;
+
             std::ofstream ofs(pathSaveFileName, std::ios::binary);
+            cout << "3" <<endl;
+
             boost::archive::binary_oarchive oa(ofs);
-            oa << strVocabularyName;
-            oa << strVocabularyChecksum;
+            cout << "4" <<endl;
+
+//            oa << strVocabularyName;
+//            oa << strVocabularyChecksum;
             oa << mpAtlas;
             cout << "End to write save binary file" << endl;
         }
@@ -1461,8 +1488,8 @@ bool System::LoadAtlas(int type)
             return false;
         }
         boost::archive::text_iarchive ia(ifs);
-        ia >> strFileVoc;
-        ia >> strVocChecksum;
+        // ia >> strFileVoc;
+        // ia >> strVocChecksum;
         ia >> mpAtlas;
         cout << "End to load the save text file " << endl;
         isRead = true;
@@ -1477,8 +1504,8 @@ bool System::LoadAtlas(int type)
             return false;
         }
         boost::archive::binary_iarchive ia(ifs);
-        ia >> strFileVoc;
-        ia >> strVocChecksum;
+//        ia >> strFileVoc;
+//        ia >> strVocChecksum;
         ia >> mpAtlas;
         cout << "End to load the save binary file" << endl;
         isRead = true;
@@ -1487,14 +1514,14 @@ bool System::LoadAtlas(int type)
     if(isRead)
     {
         //Check if the vocabulary is the same
-        string strInputVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);
+        //string strInputVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);
 
-        if(strInputVocabularyChecksum.compare(strVocChecksum) != 0)
-        {
-            cout << "The vocabulary load isn't the same which the load session was created " << endl;
-            cout << "-Vocabulary name: " << strFileVoc << endl;
-            return false; // Both are differents
-        }
+//        if(strInputVocabularyChecksum.compare(strVocChecksum) != 0)
+//        {
+//            cout << "The vocabulary load isn't the same which the load session was created " << endl;
+//            cout << "-Vocabulary name: " << strFileVoc << endl;
+//            return false; // Both are differents
+//        }
 
         mpAtlas->SetKeyFrameDababase(mpKeyFrameDatabase);
         mpAtlas->SetORBVocabulary(mpVocabulary);

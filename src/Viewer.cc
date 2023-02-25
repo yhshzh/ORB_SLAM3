@@ -174,8 +174,8 @@ void Viewer::Run()
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     pangolin::CreatePanel("menu").SetBounds(0.0,1.0,0.0,pangolin::Attach::Pix(175));
-    pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",false,true);
-    pangolin::Var<bool> menuCamView("menu.Camera View",false,false);
+    pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
+    pangolin::Var<bool> menuCamView("menu.Camera View",true,false);
     pangolin::Var<bool> menuTopView("menu.Top View",false,false);
     // pangolin::Var<bool> menuSideView("menu.Side View",false,false);
     pangolin::Var<bool> menuShowPoints("menu.Show Points",true,true);
@@ -221,6 +221,7 @@ void Viewer::Run()
     cout << "Starting the Viewer" << endl;
     while(1)
     {
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         mpMapDrawer->GetCurrentOpenGLCameraMatrix(Twc,Ow);
@@ -309,14 +310,18 @@ void Viewer::Run()
 
         d_cam.Activate(s_cam);
         glClearColor(1.0f,1.0f,1.0f,1.0f);
+        // TODO 绘制摄像机的位置
         mpMapDrawer->DrawCurrentCamera(Twc);
-        if(menuShowKeyFrames || menuShowGraph || menuShowInertialGraph || menuShowOptLba)
-            mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph, menuShowInertialGraph, menuShowOptLba);
-        if(menuShowPoints)
-            mpMapDrawer->DrawMapPoints();
+        if(menuShowKeyFrames || menuShowGraph || menuShowInertialGraph || menuShowOptLba || menuShowPoints)
+            mpMapDrawer->DrawMPAndKF(menuShowKeyFrames,menuShowGraph, menuShowInertialGraph, menuShowOptLba);
+//        if(menuShowKeyFrames || menuShowGraph || menuShowInertialGraph || menuShowOptLba)
+//            mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph, menuShowInertialGraph, menuShowOptLba);
+//        if(menuShowPoints)
+//            mpMapDrawer->DrawMapPoints();
 
         pangolin::FinishFrame();
 
+//        TODO show image
         cv::Mat toShow;
         cv::Mat im = mpFrameDrawer->DrawFrame(trackedImageScale);
 
@@ -367,7 +372,6 @@ void Viewer::Run()
             mpSystem->SaveKeyFrameTrajectoryEuRoC("KeyFrameTrajectory.txt");
             menuStop = false;
         }
-
         if(Stop())
         {
             while(isStopped())
@@ -379,7 +383,6 @@ void Viewer::Run()
         if(CheckFinish())
             break;
     }
-
     SetFinish();
 }
 

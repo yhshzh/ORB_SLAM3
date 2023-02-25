@@ -252,7 +252,7 @@ int main(int argc, char **argv) {
             image_ready = false;
         }
 
-        cv::imshow("cam0",im);
+        // cv::imshow("cam0",im);
 
         // save image and IMU data
         long int imTsInt = (long int) (1e9*imTs);

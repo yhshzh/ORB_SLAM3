@@ -25,6 +25,7 @@
 #include "Atlas.h"
 #include "ORBVocabulary.h"
 #include "Tracking.h"
+#include "NoViewer.h"
 
 #include "KeyFrameDatabase.h"
 
@@ -40,6 +41,7 @@ class Tracking;
 class LocalMapping;
 class KeyFrameDatabase;
 class Map;
+class NoViewer;
 
 
 class LoopClosing
@@ -83,6 +85,7 @@ public:
     bool isFinished();
 
     Viewer* mpViewer;
+    NoViewer* mpNoViewer;
 
 #ifdef REGISTER_TIMES
 

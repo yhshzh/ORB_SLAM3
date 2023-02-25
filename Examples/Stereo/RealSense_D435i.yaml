@@ -13,7 +13,7 @@ Camera1.fy: 382.613
 Camera1.cx: 320.183
 Camera1.cy: 236.455
 
-Stereo.b: 0.0499585
+Stereo.b: 0.04918
 
 # Camera resolution
 Camera.width: 640
@@ -26,13 +26,13 @@ Camera.fps: 30
 Camera.RGB: 1
 
 # Close/Far threshold. Baseline times.
-Stereo.ThDepth: 40.0
+Stereo.ThDepth: 20.0
 
 #--------------------------------------------------------------------------------------------
 # ORB Parameters
 #--------------------------------------------------------------------------------------------
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 1250
+ORBextractor.nFeatures: 700
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2
@@ -47,6 +47,9 @@ ORBextractor.nLevels: 8
 ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
 
+
+System.LoadAtlasFromFile: "map/test2"
+#System.SaveAtlasToFile: "map/test2"
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters
 #--------------------------------------------------------------------------------------------

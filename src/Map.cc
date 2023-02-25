@@ -252,7 +252,7 @@ bool Map::IsBad()
 void Map::ApplyScaledRotation(const Sophus::SE3f &T, const float s, const bool bScaledVel)
 {
     unique_lock<mutex> lock(mMutexMap);
-
+    cout<<"!!!!!!!!!!!!!!"<<endl;
     // Body position (IMU) of first keyframe is fixed to (0,0,0)
     Sophus::SE3f Tyw = T;
     Eigen::Matrix3f Ryw = Tyw.rotationMatrix();
@@ -263,23 +263,45 @@ void Map::ApplyScaledRotation(const Sophus::SE3f &T, const float s, const bool b
         KeyFrame* pKF = *sit;
         Sophus::SE3f Twc = pKF->GetPoseInverse();
         Twc.translation() *= s;
-        Sophus::SE3f Tyc = Tyw*Twc;
+        Sophus::SE3f Tyc = Tyw * Twc;
         Sophus::SE3f Tcy = Tyc.inverse();
-        pKF->SetPose(Tcy);
-        Eigen::Vector3f Vw = pKF->GetVelocity();
-        if(!bScaledVel)
-            pKF->SetVelocity(Ryw*Vw);
-        else
-            pKF->SetVelocity(Ryw*Vw*s);
-
+        if (mnASR<5){
+            pKF->SetPose(Tcy);
+            Eigen::Vector3f Vw = pKF->GetVelocity();
+            if (!bScaledVel)
+                pKF->SetVelocity(Ryw * Vw);
+            else
+                pKF->SetVelocity(Ryw * Vw * s);
+        }
+    //    pKF->SetPose(Tcy);
+    //    Eigen::Vector3f Vw = pKF->GetVelocity();
+    //    if (!bScaledVel)
+    //        pKF->SetVelocity(Ryw * Vw);
+    //    else
+    //        pKF->SetVelocity(Ryw * Vw * s);
     }
+    if(mnASR<5){
     for(set<MapPoint*>::iterator sit=mspMapPoints.begin(); sit!=mspMapPoints.end(); sit++)
     {
         MapPoint* pMP = *sit;
         pMP->SetWorldPos(s * Ryw * pMP->GetWorldPos() + tyw);
+//        pMP->SetWorldPos(s * Ryw * pMP->GetWorldPos());
         pMP->UpdateNormalAndDepth();
     }
+    }
+    // for(set<MapPoint*>::iterator sit=mspMapPoints.begin(); sit!=mspMapPoints.end(); sit++)
+    // {
+    //     MapPoint* pMP = *sit;
+    //     pMP->SetWorldPos(s * Ryw * pMP->GetWorldPos() + tyw);
+    //     pMP->UpdateNormalAndDepth();
+    // }
     mnMapChange++;
+    mnASR++;
+    cout << mnASR << endl;
+}
+
+void Map::ReSetASR(){
+    mnASR = 0;
 }
 
 void Map::SetInertialSensor()

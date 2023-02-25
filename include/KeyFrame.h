@@ -106,8 +106,10 @@ class KeyFrame
         //ar & mnBALocalForMerge;
 
         // Scale
+        // 规模
         ar & mfScale;
         // Calibration parameters
+        // 校准参数
         ar & const_cast<float&>(fx);
         ar & const_cast<float&>(fy);
         ar & const_cast<float&>(invfx);
@@ -119,19 +121,24 @@ class KeyFrame
         ar & const_cast<float&>(mThDepth);
         serializeMatrix(ar, mDistCoef, version);
         // Number of Keypoints
+        // 关键点数
         ar & const_cast<int&>(N);
         // KeyPoints
+        // 关键点
         serializeVectorKeyPoints<Archive>(ar, mvKeys, version);
         serializeVectorKeyPoints<Archive>(ar, mvKeysUn, version);
         ar & const_cast<vector<float>& >(mvuRight);
         ar & const_cast<vector<float>& >(mvDepth);
         serializeMatrix<Archive>(ar,mDescriptors,version);
         // BOW
+        // DBoW2
         ar & mBowVec;
         ar & mFeatVec;
         // Pose relative to parent
+        // 相对于父母的姿势
         serializeSophusSE3<Archive>(ar, mTcp, version);
         // Scale
+        // 规模
         ar & const_cast<int&>(mnScaleLevels);
         ar & const_cast<float&>(mfScaleFactor);
         ar & const_cast<float&>(mfLogScaleFactor);
@@ -139,20 +146,26 @@ class KeyFrame
         ar & const_cast<vector<float>& >(mvLevelSigma2);
         ar & const_cast<vector<float>& >(mvInvLevelSigma2);
         // Image bounds and calibration
+        // 图像边界和校准
         ar & const_cast<int&>(mnMinX);
         ar & const_cast<int&>(mnMinY);
         ar & const_cast<int&>(mnMaxX);
         ar & const_cast<int&>(mnMaxY);
         ar & boost::serialization::make_array(mK_.data(), mK_.size());
         // Pose
+        // 姿势
         serializeSophusSE3<Archive>(ar, mTcw, version);
         // MapPointsId associated to keypoints
+        // 与关键点关联的 MapPointsId
         ar & mvBackupMapPointsId;
         // Grid
+        // 网格
         ar & mGrid;
         // Connected KeyFrameWeight
+        // 连接关键帧权重
         ar & mBackupConnectedKeyFrameIdWeights;
         // Spanning Tree and Loop Edges
+        // 生成树和循环边缘
         ar & mbFirstConnection;
         ar & mBackupParentId;
         ar & mvBackupChildrensId;
@@ -168,10 +181,12 @@ class KeyFrame
         ar & mnOriginMapId;
 
         // Camera variables
+        // 相机变量
         ar & mnBackupIdCamera;
         ar & mnBackupIdCamera2;
 
         // Fisheye variables
+        // 鱼眼变量
         ar & mvLeftToRightMatch;
         ar & mvRightToLeftMatch;
         ar & const_cast<int&>(NLeft);
@@ -181,6 +196,7 @@ class KeyFrame
         ar & mGridRight;
 
         // Inertial variables
+        // 惯性变量
         ar & mImuBias;
         ar & mBackupImuPreintegrated;
         ar & mImuCalib;
@@ -198,6 +214,7 @@ public:
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
     // Pose functions
+    // 为子
     void SetPose(const Sophus::SE3f &Tcw);
     void SetVelocity(const Eigen::Vector3f &Vw_);
 

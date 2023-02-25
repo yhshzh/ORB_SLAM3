@@ -63,14 +63,18 @@ void LocalMapping::SetTracker(Tracking *pTracker)
 
 void LocalMapping::Run()
 {
+    // 设置Mapping完成Flag为false
     mbFinished = false;
 
+    // 开始循环等待执行
     while(1)
     {
         // Tracking will see that Local Mapping is busy
+        // 设置Mapping不接受新关键帧
         SetAcceptKeyFrames(false);
 
         // Check if there are keyframes in the queue
+        // 新关键帧队列不为空并且没有BadImu
         if(CheckNewKeyFrames() && !mbBadImu)
         {
 #ifdef REGISTER_TIMES
@@ -80,6 +84,7 @@ void LocalMapping::Run()
             std::chrono::steady_clock::time_point time_StartProcessKF = std::chrono::steady_clock::now();
 #endif
             // BoW conversion and insertion in Map
+            // 处理新关键帧
             ProcessNewKeyFrame();
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndProcessKF = std::chrono::steady_clock::now();
@@ -89,6 +94,7 @@ void LocalMapping::Run()
 #endif
 
             // Check recent MapPoints
+            // 删除重复地图点
             MapPointCulling();
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndMPCulling = std::chrono::steady_clock::now();
@@ -98,13 +104,16 @@ void LocalMapping::Run()
 #endif
 
             // Triangulate new MapPoints
+            // 创建新地图点
             CreateNewMapPoints();
 
             mbAbortBA = false;
 
+            // 关键帧队列是否为空
             if(!CheckNewKeyFrames())
             {
                 // Find more matches in neighbor keyframes and fuse point duplications
+                // 关键帧队列为空则寻找相邻关键帧
                 SearchInNeighbors();
             }
 
@@ -121,36 +130,49 @@ void LocalMapping::Run()
             int num_MPs_BA = 0;
             int num_edges_BA = 0;
 
+            // 关键帧队列不为空，并且未stop
             if(!CheckNewKeyFrames() && !stopRequested())
             {
+                // 地图中当前子图的关键帧是否大于2
                 if(mpAtlas->KeyFramesInMap()>2)
                 {
-
+                    // 是否使用IMU，并且当前子图IMU是否已经初始化
                     if(mbInertial && mpCurrentKeyFrame->GetMap()->isImuInitialized())
                     {
+                        // dist为当前帧与上一帧距离，加上一帧与上两帧距离
                         float dist = (mpCurrentKeyFrame->mPrevKF->GetCameraCenter() - mpCurrentKeyFrame->GetCameraCenter()).norm() +
                                 (mpCurrentKeyFrame->mPrevKF->mPrevKF->GetCameraCenter() - mpCurrentKeyFrame->mPrevKF->GetCameraCenter()).norm();
 
+                        // 如果距离差大于0.05
                         if(dist>0.05)
+                            // 累加时间差
                             mTinit += mpCurrentKeyFrame->mTimeStamp - mpCurrentKeyFrame->mPrevKF->mTimeStamp;
-                        if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
-                        {
-                            if((mTinit<10.f) && (dist<0.02))
-                            {
-                                cout << "Not enough motion for initializing. Reseting..." << endl;
-                                unique_lock<mutex> lock(mMutexReset);
-                                mbResetRequestedActiveMap = true;
-                                mpMapToReset = mpCurrentKeyFrame->GetMap();
-                                mbBadImu = true;
-                            }
-                        }
 
+                        // 若当前关键帧所在子图没有ImuBA2
+                        // if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA2())
+                        // {
+                               // 如果总时间差小于10秒并且距离差小于0.02
+                        //     if((mTinit<10.f) && (dist<0.02))
+                        //     {
+                                   // 重置地图
+                        //         cout << "Not enough motion for initializing. Reseting..." << endl;
+                        //         unique_lock<mutex> lock(mMutexReset);
+                        //         mbResetRequestedActiveMap = true;
+                        //         mpMapToReset = mpCurrentKeyFrame->GetMap();
+                        //         mbBadImu = true;
+                        //     }
+                        // }
+
+                        // 单目摄像机匹配对大于75，双目摄像机匹配对大于100
                         bool bLarge = ((mpTracker->GetMatchesInliers()>75)&&mbMonocular)||((mpTracker->GetMatchesInliers()>100)&&!mbMonocular);
+                        // 局部IMUBA (Bundle Adjustment) 一种后端优化算法
+                        // Bundle Adjustment中文译作光束平差法、捆集调整等，是指从视觉重建中提炼出最优的3D模型和相机参数（内参和外参）。 从每个特征点反射出来的几束光线（bundles of light rays），在我们把相机姿态和特征点的位置做出最优的调整（adjustment）之后，最后收束到光心的这个过程，简称BA。
                         Optimizer::LocalInertialBA(mpCurrentKeyFrame, &mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA, bLarge, !mpCurrentKeyFrame->GetMap()->GetIniertialBA2());
                         b_doneLBA = true;
                     }
                     else
                     {
+                        // 未使用IMU，直接进行BA
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
                         b_doneLBA = true;
                     }
@@ -178,8 +200,11 @@ void LocalMapping::Run()
 #endif
 
                 // Initialize IMU here
+                // 当前关键帧所在子图是否使用IMU并且是否进行IMU初始化
                 if(!mpCurrentKeyFrame->GetMap()->isImuInitialized() && mbInertial)
                 {
+                    // 若使用IMU但沒有初始化
+                    // 根据单双目进行IMU初始化
                     if (mbMonocular)
                         InitializeIMU(1e2, 1e10, true);
                     else
@@ -188,6 +213,7 @@ void LocalMapping::Run()
 
 
                 // Check redundant local Keyframes
+                // 去除多余关键帧
                 KeyFrameCulling();
 
 #ifdef REGISTER_TIMES
@@ -197,17 +223,24 @@ void LocalMapping::Run()
                 vdKFCulling_ms.push_back(timeKFCulling_ms);
 #endif
 
+                // 累计时间小于50秒并且使用IMU
+                // TODO 地图点坐标变化的地方
                 if ((mTinit<50.0f) && mbInertial)
+//                if ((mTinit<3.0f) && mbInertial)
+//                if ((mTinit<.0f) && mbInertial)
                 {
+                    // 当前关键帧所在子图是否进行初始化，Tracking状态是否正常
                     if(mpCurrentKeyFrame->GetMap()->isImuInitialized() && mpTracker->mState==Tracking::OK) // Enter here everytime local-mapping is called
                     {
+                        // 当前地图IMUBA1，2是否已经完成
+                        // 未完成则继续进行BA
                         if(!mpCurrentKeyFrame->GetMap()->GetIniertialBA1()){
                             if (mTinit>5.0f)
                             {
                                 cout << "start VIBA 1" << endl;
                                 mpCurrentKeyFrame->GetMap()->SetIniertialBA1();
                                 if (mbMonocular)
-                                    InitializeIMU(1.f, 1e5, true);
+                                    InitializeIMU(1.f, 1e5, true); // priorG陀螺仪偏执优化权重  priorA加速度计偏执优化权重
                                 else
                                     InitializeIMU(1.f, 1e5, true);
 
@@ -219,15 +252,18 @@ void LocalMapping::Run()
                                 cout << "start VIBA 2" << endl;
                                 mpCurrentKeyFrame->GetMap()->SetIniertialBA2();
                                 if (mbMonocular)
-                                    InitializeIMU(0.f, 0.f, true);
+//                                    InitializeIMU(0.1f, 0.1f, true);
+                                    InitializeIMU(1.f, 1e5, true);
                                 else
-                                    InitializeIMU(0.f, 0.f, true);
+//                                    InitializeIMU(0.1f, 0.1f, true);
+                                    InitializeIMU(1.f, 1e5, true);
 
                                 cout << "end VIBA 2" << endl;
                             }
                         }
 
                         // scale refinement
+                        // 地图关键帧小于200并且累计时间在一定范围
                         if (((mpAtlas->KeyFramesInMap())<=200) &&
                                 ((mTinit>25.0f && mTinit<25.5f)||
                                 (mTinit>35.0f && mTinit<35.5f)||
@@ -235,6 +271,7 @@ void LocalMapping::Run()
                                 (mTinit>55.0f && mTinit<55.5f)||
                                 (mTinit>65.0f && mTinit<65.5f)||
                                 (mTinit>75.0f && mTinit<75.5f))){
+                            // 单目摄像机则进行尺度优化
                             if (mbMonocular)
                                 ScaleRefinement();
                         }
@@ -246,7 +283,7 @@ void LocalMapping::Run()
             vdLBASync_ms.push_back(timeKFCulling_ms);
             vdKFCullingSync_ms.push_back(timeKFCulling_ms);
 #endif
-
+            // 闭环检测插入关键帧
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
 #ifdef REGISTER_TIMES
@@ -255,10 +292,12 @@ void LocalMapping::Run()
             double timeLocalMap = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLocalMap - time_StartProcessKF).count();
             vdLMTotal_ms.push_back(timeLocalMap);
 #endif
-        }
+        }// 条件：关键帧队列不为空，并且未stop  未满足
+        // 如果Stop并且没有BadImu
         else if(Stop() && !mbBadImu)
         {
             // Safe area to stop
+            // 等待停止
             while(isStopped() && !CheckFinish())
             {
                 usleep(3000);
@@ -266,18 +305,20 @@ void LocalMapping::Run()
             if(CheckFinish())
                 break;
         }
-
+        // 请求停止当前关键帧LocalMapping
         ResetIfRequested();
 
         // Tracking will see that Local Mapping is busy
+        // 设置继续接收关键帧
         SetAcceptKeyFrames(true);
 
+        // 是否完成，完成则跳出循环
         if(CheckFinish())
             break;
 
         usleep(3000);
     }
-
+    // 已经结束循环，设置为完成
     SetFinish();
 }
 
@@ -1280,7 +1321,7 @@ void LocalMapping::InitializeIMU(float priorG, float priorA, bool bFIBA)
         unique_lock<mutex> lock(mpAtlas->GetCurrentMap()->mMutexMapUpdate);
         if ((fabs(mScale - 1.f) > 0.00001) || !mbMonocular) {
             Sophus::SE3f Twg(mRwg.cast<float>().transpose(), Eigen::Vector3f::Zero());
-            mpAtlas->GetCurrentMap()->ApplyScaledRotation(Twg, mScale, true);
+            mpAtlas->GetCurrentMap()->ApplyScaledRotation(Twg, mScale, true);       // TODO :reading
             mpTracker->UpdateFrameIMU(mScale, vpKF[0]->GetImuBias(), mpCurrentKeyFrame);
         }
 
@@ -1469,7 +1510,7 @@ void LocalMapping::ScaleRefinement()
     }
     
     Sophus::SO3d so3wg(mRwg);
-    // Before this line we are not changing the map
+    // Before this line we are not changing the map TODO change the map
     unique_lock<mutex> lock(mpAtlas->GetCurrentMap()->mMutexMapUpdate);
     std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
     if ((fabs(mScale-1.f)>0.002)||!mbMonocular)
@@ -1517,6 +1558,10 @@ double LocalMapping::GetCurrKFTime()
 KeyFrame* LocalMapping::GetCurrKF()
 {
     return mpCurrentKeyFrame;
+}
+
+float LocalMapping::GetTime() {
+    return mTinit;
 }
 
 } //namespace ORB_SLAM

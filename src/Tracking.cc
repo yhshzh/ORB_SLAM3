@@ -1439,6 +1439,10 @@ void Tracking::SetViewer(Viewer *pViewer)
     mpViewer=pViewer;
 }
 
+void Tracking::SetNoViewer(ORB_SLAM3::NoViewer *pNoViewer) {
+    mpNoViewer=pNoViewer;
+}
+
 void Tracking::SetStepByStep(bool bSet)
 {
     bStepByStep = bSet;
@@ -2127,8 +2131,11 @@ void Tracking::Track()
                 bOK = TrackLocalMap();
 
             }
-            if(!bOK)
+            if(!bOK){
                 cout << "Fail to track local map!" << endl;
+                mpLastKeyFrame->GetMap()->ReSetASR();
+            }
+                
         }
         else
         {
@@ -2344,9 +2351,9 @@ void Tracking::StereoInitialization()
                 return;
             }
 
-            if (!mFastInit && (mCurrentFrame.mpImuPreintegratedFrame->avgA-mLastFrame.mpImuPreintegratedFrame->avgA).norm()<0.5)
+            if (!mFastInit && (mCurrentFrame.mpImuPreintegratedFrame->avgA-mLastFrame.mpImuPreintegratedFrame->avgA).norm()<0)
             {
-                cout << "not enough acceleration" << endl;
+                cout << "not enough acceleration" << endl;  // TODO not enough acceleration
                 return;
             }
 

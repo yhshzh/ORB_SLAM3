@@ -39,6 +39,7 @@
 #include "Viewer.h"
 #include "ImuTypes.h"
 #include "Settings.h"
+#include "NoViewer.h"
 
 
 namespace ORB_SLAM3
@@ -72,6 +73,7 @@ public:
 };
 
 class Viewer;
+class NoViewer;
 class FrameDrawer;
 class MapDrawer;
 class Atlas;
@@ -225,7 +227,10 @@ private:
     LoopClosing* mpLoopCloser;
 
     // The viewer draws the map and the current camera pose. It uses Pangolin.
+    // TODO: added NoViewer
     Viewer* mpViewer;
+    NoViewer* mpNoViewer;
+
 
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
@@ -235,6 +240,7 @@ private:
     std::thread* mptLocalMapping;
     std::thread* mptLoopClosing;
     std::thread* mptViewer;
+    std::thread* mptNoViewer;
 
     // Reset flag
     std::mutex mMutexReset;

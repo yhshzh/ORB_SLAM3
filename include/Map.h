@@ -116,6 +116,8 @@ public:
     bool isImuInitialized();
 
     void ApplyScaledRotation(const Sophus::SE3f &T, const float s, const bool bScaledVel=false);
+    void ReSetASR();
+    int mnASR = 0;
 
     void SetInertialSensor();
     bool IsInertial();
