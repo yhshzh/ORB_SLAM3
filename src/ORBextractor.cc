@@ -440,7 +440,8 @@ namespace ORB_SLAM3
             mvInvLevelSigma2[i]=1.0f/mvLevelSigma2[i];
         }
 
-        mvImagePyramid.resize(nlevels);
+//      mvImagePyramid.resize(nlevels);
+        mvImagePyramidAllocatedFlag = false;
 
         mnFeaturesPerLevel.resize(nlevels);
         float factor = 1.0f / scaleFactor;
@@ -952,7 +953,6 @@ void ORBextractor::ComputePyramid(Mat image) {
                                                               Size(7, 7), 2, 2, BORDER_REFLECT_101);
             mvImagePyramidAllocatedFlag = true;
         }
-
         for (int level = 0; level < nlevels; ++level) {
             float scale = mvInvScaleFactor[level];
             Size sz(cvRound((float) image.cols * scale), cvRound((float) image.rows * scale));
