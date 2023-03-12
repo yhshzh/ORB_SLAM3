@@ -170,7 +170,7 @@ void NoViewer::Run()
         }
 
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZ>);
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZ>);
 
 
         for (size_t i = 0, iend = vpMPs.size(); i < iend; i++) {
@@ -180,7 +180,7 @@ void NoViewer::Run()
 //        if ((pos(0) > 2 && pos(0) < 12) && (pos(1) > 2 && pos(1) < 8) && (pos(2) > 0.2 && pos(2) < 3))
             {
                 glVertex3f(pos(0), pos(1), pos(2));
-                cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
+                // cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
             }
 
         }
@@ -193,7 +193,7 @@ void NoViewer::Run()
 //        if ((pos(0) > 2 && pos(0) < 12) && (pos(1) > 2 && pos(1) < 8) && (pos(2) > 0.2 && pos(2) < 3))
             {
                 glVertex3f(pos(0), pos(1), pos(2));
-                cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
+                // cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
             }
         }
 

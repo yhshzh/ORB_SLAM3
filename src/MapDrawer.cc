@@ -177,7 +177,7 @@ void MapDrawer::DrawMPAndKF(const bool bDrawKF, const bool bDrawGraph, const boo
     glBegin(GL_POINTS);
     glColor3f(0.0, 0.0, 0.0);
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZ>);
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZ>);
 
 
     for (size_t i = 0, iend = vpMPs.size(); i < iend; i++) {
@@ -187,7 +187,7 @@ void MapDrawer::DrawMPAndKF(const bool bDrawKF, const bool bDrawGraph, const boo
 //        if ((pos(0) > 2 && pos(0) < 12) && (pos(1) > 2 && pos(1) < 8) && (pos(2) > 0.2 && pos(2) < 3))
         {
             glVertex3f(pos(0), pos(1), pos(2));
-            cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
+            // cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
         }
 
 //        cout << "MapPoints:  x=" + to_string(pos(0)) + " y=" + to_string(pos(1)) + "  z=" + to_string(pos(2))
@@ -208,7 +208,7 @@ void MapDrawer::DrawMPAndKF(const bool bDrawKF, const bool bDrawGraph, const boo
 //        if ((pos(0) > 2 && pos(0) < 12) && (pos(1) > 2 && pos(1) < 8) && (pos(2) > 0.2 && pos(2) < 3))
         {
             glVertex3f(pos(0), pos(1), pos(2));
-            cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
+            // cloud_temp->push_back(pcl::PointXYZ(pos(0), pos(1), 0));
 
 //            cout <<"ReferenceMapPoints:  x=" + to_string(pos(0)) + " y=" + to_string(pos(1)) + "  z=" + to_string(pos(2)) << endl;
         }

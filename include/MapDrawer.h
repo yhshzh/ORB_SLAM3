@@ -24,29 +24,29 @@
 #include "MapPoint.h"
 #include "KeyFrame.h"
 #include "Settings.h"
-#include "KMeans.h"
+// #include "KMeans.h"
 #include <pangolin/pangolin.h>
 
 #include <sstream>
 #include <iostream>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+// #include <pcl_conversions/pcl_conversions.h>
+// #include <pcl/point_cloud.h>
+// #include <pcl/point_types.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <math.h>
-#include <pcl/common/transforms.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/filters/filter.h>				//滤波相关头文件
-#include <pcl/filters/radius_outlier_removal.h> // 半径滤波器
-#include <pcl/filters/passthrough.h>		//滤波相关类头文件
-#include <pcl/filters/project_inliers.h>	//滤波相关类头文件，点云投影
-#include <pcl/filters/extract_indices.h>	//索引提取
-#include <pcl/filters/voxel_grid.h>			//基于体素网格化的滤波
-#include <pcl/filters/approximate_voxel_grid.h>			//体素网格过滤器滤波
-#include <pcl/filters/statistical_outlier_removal.h>	//统计离群点
-#include <pcl/segmentation/extract_clusters.h>
-#include <pcl/visualization/cloud_viewer.h>
+// #include <pcl/common/transforms.h>
+// #include <pcl/io/pcd_io.h>
+// #include <pcl/filters/filter.h>				//滤波相关头文件
+// #include <pcl/filters/radius_outlier_removal.h> // 半径滤波器
+// #include <pcl/filters/passthrough.h>		//滤波相关类头文件
+// #include <pcl/filters/project_inliers.h>	//滤波相关类头文件，点云投影
+// #include <pcl/filters/extract_indices.h>	//索引提取
+// #include <pcl/filters/voxel_grid.h>			//基于体素网格化的滤波
+// #include <pcl/filters/approximate_voxel_grid.h>			//体素网格过滤器滤波
+// #include <pcl/filters/statistical_outlier_removal.h>	//统计离群点
+// #include <pcl/segmentation/extract_clusters.h>
+// #include <pcl/visualization/cloud_viewer.h>
 
 #include<mutex>
 

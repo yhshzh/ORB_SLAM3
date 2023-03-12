@@ -48,7 +48,7 @@ ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
 
 
-System.LoadAtlasFromFile: "map/test2"
+#System.LoadAtlasFromFile: "map/test2"
 #System.SaveAtlasToFile: "map/test2"
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters
