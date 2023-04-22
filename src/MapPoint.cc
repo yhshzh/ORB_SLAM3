@@ -569,35 +569,38 @@ void MapPoint::UpdateMap(Map* pMap)
     mpMap = pMap;
 }
 
-void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
-{
-    mBackupReplacedId = -1;
-    if(mpReplaced && spMP.find(mpReplaced) != spMP.end())
-        mBackupReplacedId = mpReplaced->mnId;
-
-    mBackupObservationsId1.clear();
-    mBackupObservationsId2.clear();
-    // Save the id and position in each KF who view it
-    for(std::map<KeyFrame*,std::tuple<int,int> >::const_iterator it = mObservations.begin(), end = mObservations.end(); it != end; ++it)
+    void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     {
-        KeyFrame* pKFi = it->first;
-        if(spKF.find(pKFi) != spKF.end())
+        mBackupReplacedId = -1;
+        if(mpReplaced && spMP.find(mpReplaced) != spMP.end())
+            mBackupReplacedId = mpReplaced->mnId;
+
+        mBackupObservationsId1.clear();
+        mBackupObservationsId2.clear();
+        // Save the id and position in each KF who view it
+        std::map<KeyFrame*,std::tuple<int,int> > tmp_mObservations;
+        tmp_mObservations.insert(mObservations.begin(), mObservations.end());
+
+        for(std::map<KeyFrame*,std::tuple<int,int> >::const_iterator it = tmp_mObservations.begin(), end = tmp_mObservations.end(); it != end; ++it)
         {
-            mBackupObservationsId1[it->first->mnId] = get<0>(it->second);
-            mBackupObservationsId2[it->first->mnId] = get<1>(it->second);
+            KeyFrame* pKFi = it->first;
+            if(spKF.find(pKFi) != spKF.end())
+            {
+                mBackupObservationsId1[it->first->mnId] = get<0>(it->second);
+                mBackupObservationsId2[it->first->mnId] = get<1>(it->second);
+            }
+            else
+            {
+                EraseObservation(pKFi);
+            }
         }
-        else
+
+        // Save the id of the reference KF
+        if(spKF.find(mpRefKF) != spKF.end())
         {
-            EraseObservation(pKFi);
+            mBackupRefKFId = mpRefKF->mnId;
         }
     }
-
-    // Save the id of the reference KF
-    if(spKF.find(mpRefKF) != spKF.end())
-    {
-        mBackupRefKFId = mpRefKF->mnId;
-    }
-}
 
 void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid)
 {

@@ -310,23 +310,19 @@ void MapDrawer::DrawMPAndKF(const bool bDrawKF, const bool bDrawGraph, const boo
         for (size_t i = 0; i < vpKFs.size(); i++) {
             KeyFrame *pKF = vpKFs[i];
             Eigen::Matrix4f Twc = pKF->GetPoseInverse().matrix();
-//            Eigen::Vector3f CPose = pKF->GetCameraCenter();
-//            Eigen::Vector3f IMUPos = pKF->GetImuPosition();
+
             Eigen::Matrix4f CPos = mCameraPose.matrix();
-//            for (int ii = 0;ii<4;ii++){
-//                for (int jj = 0;jj<4;jj++){
-//                    cout<<to_string(CPos(ii,jj))<<" ";
-//                }
-//                cout<<endl;
-//            }
-//            cout<<"end"<<endl;
+
+            // TODO: Transform
             if(pflag>=30) {
                 pflag = 0;
-                cout << (0.99974491*CPos(0, 3) + 0.00686359*CPos(1, 3) + 0.02151778*CPos(2, 3))*0.987097551 << " ";
-                cout << (-0.00669559*CPos(0, 3) + 0.99994662*CPos(1, 3) + -0.00786956*CPos(2, 3))*0.987097551 << " ";
-                cout << (-0.02157064*CPos(0, 3) + 0.00772348*CPos(1, 3) + 0.99973749*CPos(2, 3))*0.987097551 << " ";
-//                for (int ii = 0; ii < 3; ii++)
-//                    cout << to_string(CPos(ii, 3)) << " ";
+				cout << (0.9766263943671313*(CPos(0, 3)+ (1.9113996585817086)) + -0.07468216225005816*(CPos(1, 3) + (-0.7390443037917813)) + -0.2015526245602173*(CPos(2, 3) + (-0.08972804739613949)))*0.988036097525641 << " ";
+				cout << (0.09785367748098607*(CPos(0, 3)+ (1.9113996585817086)) + 0.9893717738244538*(CPos(1, 3) + (-0.7390443037917813)) + 0.10755533907204108*(CPos(2, 3) + (-0.08972804739613949)))*0.988036097525641  << " ";
+				cout << (0.19137801239667807*(CPos(0, 3)+ (1.9113996585817086)) + -0.12476404851202325*(CPos(1, 3) + (-0.7390443037917813)) + 0.9735545123771888*(CPos(2, 3) + (-0.08972804739613949)))*0.988036097525641 << " ";
+
+
+                // for (int ii = 0; ii < 3; ii++)
+                //    cout << to_string(CPos(ii, 3)) << " ";
                 cout << endl;
             }
 
